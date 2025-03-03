@@ -5,7 +5,7 @@ from app.auth import protected
 
 import config
 
-from database.models import User
+from database.models import Account, Transaction, User
 
 import jwt
 
@@ -15,25 +15,7 @@ from sqlalchemy import select
 
 
 main = Blueprint("main")
-auth = Blueprint("auth")
-
-
-@main.middleware("request")
-async def fetch_user_from_token(request):
-    if not request.token:
-        request.ctx.user = None
-        return
-    try:
-        payload = jwt.decode(
-            request.token, request.app.config.SECRET, algorithms=["HS256"]
-        )
-    except jwt.InvalidTokenError:
-        request.ctx.user = None
-        return
-    st = select(User).where(User.email == payload["sub"])
-    async with request.app.ctx.session() as session:
-        user = await session.scalar(st)
-    request.ctx.user = user
+auth = Blueprint("auth", url_prefix="/auth")
 
 
 @main.get("/", name="index")
@@ -41,9 +23,9 @@ async def main_handler(request):
     return text("Hello, world!")
 
 
-@main.get("/me", name="info")
+@main.get("/me", name="personal_info")
 @protected
-async def return_data(request):
+async def get_personal_data(request):
     user = request.ctx.user
     payload = {
         "id": user.id,
@@ -51,6 +33,34 @@ async def return_data(request):
         "full name": user.full_name,
     }
     return json(payload, status=HTTPStatus.OK)
+
+
+@main.get("/accounts", name="account_info")
+@protected
+async def get_account_data(request):
+    user = request.ctx.user
+    st = select(Account).where(Account.user_id == user.id)
+    async with request.app.ctx.session() as session:
+        accounts = await session.scalars(st)
+
+    return_data = dict()
+    for account in accounts:
+        return_data[account.id] = account.balance
+
+    return json(return_data, status=HTTPStatus.OK)
+
+
+@main.get("/transactions", name="transactions_info")
+@protected
+async def get_transactions(request):
+    user = request.ctx.user
+    st = select(Transaction).where(Transaction.user_id == user.id)
+    async with request.app.ctx.session() as session:
+        transactions = await session.scalars(st)
+    data = []
+    for elem in transactions:
+        data.append(elem.serialize())
+    return json(data, HTTPStatus.OK)
 
 
 @auth.post("/login", name="login")

@@ -1,5 +1,5 @@
 import uuid
-from typing import List, Optional
+from typing import Any, Dict, List, Optional
 
 import bcrypt
 
@@ -33,12 +33,12 @@ class User(Base):
         back_populates="receiver"
     )
 
-    def __repr__(self):
-        repr = (
+    def __str__(self):
+        str_repr = (
             f"id: {self.id}\n"
             f"Email: {self.email}\nFull name: {self.full_name}\n"
         )
-        return repr
+        return str_repr
 
     def set_password(self, password: str):
         pwhash = bcrypt.hashpw(
@@ -49,6 +49,14 @@ class User(Base):
     def verify_password(self, password: str) -> bool:
         bpass = password.encode("utf-8")
         return bcrypt.checkpw(bpass, self.password.encode(encoding="utf-8"))
+
+    def serialize(self) -> Dict[str, Any]:
+        return {
+            "id": self.id,
+            "email": self.email,
+            "full_name": self.full_name,
+            "is_admin": self.is_admin,
+        }
 
 
 class Account(Base):
@@ -65,6 +73,9 @@ class Account(Base):
         back_populates="account"
     )
 
+    def serialize(self) -> Dict[str, Any]:
+        return {"id": self.id, "balance": self.balance}
+
 
 class Transaction(Base):
     __tablename__ = "transaction"
@@ -76,6 +87,13 @@ class Transaction(Base):
 
     user_id: Mapped[int] = mapped_column(ForeignKey("user.id"))
     receiver: Mapped["User"] = relationship(back_populates="transactions")
+
+    def serialize(self):
+        return {
+            "id": str(self.id),
+            "amount": self.amount,
+            "account_id": self.account_id,
+        }
 
 
 async def create_user(
@@ -110,6 +128,8 @@ if __name__ == "__main__":
 
     path = Path(__file__).resolve().parent.parent
     sys.path.append(str(path))
+    # in order to let application see the config.py,
+    # required in database.engine module
 
     from engine import engine
 
