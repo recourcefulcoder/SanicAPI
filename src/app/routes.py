@@ -58,8 +58,8 @@ async def get_transactions(request):
     async with request.app.ctx.session() as session:
         transactions = await session.scalars(st)
     data = []
-    for elem in transactions:
-        data.append(elem.serialize())
+    for transaction in transactions:
+        data.append(transaction.serialize())
     return json(data, HTTPStatus.OK)
 
 

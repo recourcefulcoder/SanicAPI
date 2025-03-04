@@ -1,6 +1,7 @@
 from app.admin_routes import admin_bp
 from app.routes import auth, main
 from app.utils import fetch_user_middleware
+from app.webhook import webhook
 
 from config import load_environ
 
@@ -22,6 +23,6 @@ async def setup_db(app):
 def create_app() -> Sanic:
     app = Sanic("payment-app")
     app.register_listener(setup_db, "after_server_start")
-    app.blueprint([main, auth, admin_bp])
+    app.blueprint([main, auth, admin_bp, webhook])
     app.register_middleware(fetch_user_middleware, "request")
     return app

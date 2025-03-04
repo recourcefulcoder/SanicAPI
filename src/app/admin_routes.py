@@ -62,10 +62,6 @@ async def get_user_list(request):
         )
     response_data = []
     for user in users:
-        # user_data = dict()
-        # user_data["id"] = user.id
-        # user_data["email"] = user.email
-        # user_data["full_name"] = user.full_name
         response_data.append(user.serialize())
 
     return json(response_data, status=HTTPStatus.OK)

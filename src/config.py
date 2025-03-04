@@ -18,6 +18,7 @@ def load_environ():
 load_environ()
 
 SANIC_SECRET: Final = os.getenv("SANIC_SECRET")
+WEBHOOK_SECRET: Final = os.getenv("WEBHOOK_SECRET")
 
 POSTGRES_DB: Final = os.getenv("POSTGRES_DB")
 POSTGRES_USER: Final = os.getenv("POSTGRES_USER")

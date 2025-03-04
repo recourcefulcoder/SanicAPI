@@ -4,6 +4,7 @@ Test task for DimaTech company
 
 ### Environmental variables
 + **SANIC_SECRET** - value used for cryptographic purposes
++ **WEBHOOK_SECRET** - secret key used for webhook requests validation 
 + **HOST** defines host to be used; defaults to localhost
 + **POSTGRES_DB** defines name of PostgreSQL database
 + **POSTGRES_PASSWORD** 
@@ -30,6 +31,7 @@ Endpoints are splitted into three [blueprints](https://sanic.dev/en/guide/best-p
 + **auth**, handling only login
 + **main**, handling main user functionality
 + **admin_bp**, handling admin functionality
++ **webhook**, handling single "webhook" endpoint, processing side paying system request
 
 ##### admin_bp
 + create_user(request) - accepts json object with required fields "password" and "email";
@@ -41,3 +43,5 @@ Endpoints are splitted into three [blueprints](https://sanic.dev/en/guide/best-p
     will be ignored. Sent JSON must contain at least one of "checkup fields"; if all checkup fields 
     provided contain valid value, user on given id will be updated   
     
+##### webhook
++ process_payment(request) - contains logic of webhook processing

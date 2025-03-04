@@ -3,7 +3,7 @@ from typing import Any, Dict, List, Optional
 
 import bcrypt
 
-from sqlalchemy import Column, ForeignKey
+from sqlalchemy import Column, ForeignKey, Numeric
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import (
     DeclarativeBase,
@@ -62,7 +62,7 @@ class User(Base):
 class Account(Base):
     __tablename__ = "account"
     id: Mapped[int] = mapped_column(primary_key=True)
-    balance: Mapped[int] = mapped_column(default=0)
+    balance: Mapped[float] = mapped_column(Numeric(12, 2), default=0.0)
 
     user_id: Mapped[int] = mapped_column(ForeignKey("user.id"))
     user: Mapped["User"] = relationship(
@@ -80,7 +80,7 @@ class Account(Base):
 class Transaction(Base):
     __tablename__ = "transaction"
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    amount: Mapped[int]
+    amount: Mapped[float] = mapped_column(Numeric(12, 2))
 
     account_id: Mapped[int] = mapped_column(ForeignKey("account.id"))
     account: Mapped["Account"] = relationship(back_populates="transactions")
