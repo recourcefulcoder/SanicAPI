@@ -40,11 +40,15 @@ class User(Base):
         )
         return str_repr
 
-    def set_password(self, password: str):
+    @staticmethod
+    def hash_password(password: str) -> str:
         pwhash = bcrypt.hashpw(
             password.encode(encoding="utf-8"), bcrypt.gensalt()
         )
-        self.password = pwhash.decode(encoding="utf-8")
+        return pwhash.decode(encoding="utf-8")
+
+    def set_password(self, password: str):
+        self.password = type(self).hash_password(password)
 
     def verify_password(self, password: str) -> bool:
         bpass = password.encode("utf-8")

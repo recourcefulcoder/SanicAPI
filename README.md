@@ -10,20 +10,23 @@ Test task for DimaTech company
 + **POSTGRES_PASSWORD** 
 + **POSTGRES_USER** 
 
-Test default admin user can be created by running "models.py" located in /database from bash
 
-Assuming you are in base directory:
+In order to apply database migrations, from "src" directory run:
+
 ```bash
-cd src/database
-python models.py
+alembic upgrade head
 ```
-This will create an admin user with email "admin@example.com" and password "admin"
+
+Migration creates database and provides default test data:
++ _admin user_ (password: "admin", email: "admin@example.com")
++ _non-admin user_ (full_name: "John Doe", email: "default@example.com", password: "Harmonica52!")
++ _default account_ (attached to "John Doe", balance is 0.0)
+
 
 ### Authentication notes
-JWT is chosen as a authentication backend; 
+JWT is chosen as a authentication backend (no refresh tokens, only short-living access tokens) 
 
 user's email is chosen as a value for "sub" parameter of JWT payload
-
 
 
 ### Endpoint documentation
