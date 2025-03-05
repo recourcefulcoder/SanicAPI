@@ -1,3 +1,4 @@
+![status](https://github.com/recourcefulcoder/SanicAPI/actions/workflows/commit-check.yml/badge.svg)
 # SanicAPI
 Test task for DimaTech company
 

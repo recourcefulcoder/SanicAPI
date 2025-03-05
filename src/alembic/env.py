@@ -2,6 +2,7 @@ import asyncio
 from logging.config import fileConfig
 import os
 from pathlib import Path
+import logging
 
 from dotenv import load_dotenv
 
@@ -40,7 +41,7 @@ def load_environ():
     if os.path.exists(env_path):
         load_dotenv(env_path)
     else:
-        raise NameError(".env file not found")
+        logging.warning(".env file not found")
 
 
 load_environ()

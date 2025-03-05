@@ -34,7 +34,7 @@ async def check_entities(
                 User.accounts.and_(Account.id == data["account_id"])
             )
         )
-        account_owner = account_owner.first().User
+        account_owner = account_owner.first()
 
         if not user or (
             account_owner is not None and user != account_owner.User

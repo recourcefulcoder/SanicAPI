@@ -1,0 +1,2 @@
+[flake8]
+exclude=.git,.github,personal,__pychache__,alembic,venv,.pytest_cache

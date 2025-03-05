@@ -1,4 +1,5 @@
 import datetime
+import logging
 import os
 from pathlib import Path
 from typing import Final
@@ -12,7 +13,7 @@ def load_environ():
     if os.path.exists(env_path):
         load_dotenv(env_path)
     else:
-        raise NameError(".env file not found")
+        logging.warning(".env file not found")
 
 
 load_environ()
