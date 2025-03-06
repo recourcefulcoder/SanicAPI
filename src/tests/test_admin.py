@@ -22,6 +22,21 @@ def admin_token(app):
         {"email": "invalid_email@", "password": "valid_password"},
         {"email": "invalid_email@dodo", "password": "valid_password"},
         {"email": "invalid_email@dodo.c", "password": "valid_password"},
+        {
+            "email": "valid@dodo.com",
+            "password": "valid_password",
+            "full_name": "На русском!",
+        },
+        {
+            "email": "valid@dodo.com",
+            "password": "valid_password",
+            "full_name": "hyggelig å møte deg",
+        },
+        {
+            "email": "valid@dodo.com",
+            "password": "valid_password",
+            "full_name": "Kind Of COrrect Y1t",
+        },
         {"email": "no_pass@gmail.com"},
         {"password": "no_email"},
         {},
@@ -37,3 +52,37 @@ async def test_invalid_user_creation_data(app, admin_token, data):
         json=data,
     )
     assert response.status == HTTPStatus.BAD_REQUEST
+
+
+@pytest.mark.parametrize(
+    "data",
+    [
+        {"email": "valid@gmail.com", "password": "valid_password"},
+        {
+            "email": "valid1@gmail.com",
+            "password": "valid_password",
+            "is_admin": "True",
+        },
+        {
+            "email": "valid2@gmail.com",
+            "password": "valid_password",
+            "full_name": "Absolute Nonsence",
+        },
+        {
+            "email": "valid3@gmail.com",
+            "password": "valid_password",
+            "full_name": "  Still valid name  ",
+        },
+    ],
+)
+@pytest.mark.usefixtures("_delete_odd_users")
+@pytest.mark.asyncio
+async def test_valid_user_creation_data(app, admin_token, data):
+    test_client = SanicASGITestClient(app)
+    _, response = await test_client.post(
+        app.url_for(f"{admin_bp.name}.create_user"),
+        headers={"Authorization": f"Bearer {admin_token}"},
+        json=data,
+    )
+
+    assert response.status == HTTPStatus.CREATED

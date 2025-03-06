@@ -36,7 +36,8 @@ class User(Base):
     def __str__(self):
         str_repr = (
             f"id: {self.id}\n"
-            f"Email: {self.email}\nFull name: {self.full_name}\n"
+            f"Email: {self.email}\n"
+            f"Full name: {self.full_name}\n"
         )
         return str_repr
 

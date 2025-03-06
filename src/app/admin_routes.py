@@ -1,7 +1,7 @@
 from http import HTTPStatus
 
 from app.auth import admin_only
-from app.utils import valid_email_decorator
+from app.utils import validate_user_creation_data
 
 from database.models import Account, User
 
@@ -16,21 +16,25 @@ admin_bp = Blueprint("admin", url_prefix="/admin")
 
 @admin_bp.post("/create-user", name="create_user")
 @admin_only
-@valid_email_decorator
+@validate_user_creation_data
 async def create_user(request):
     """
     Accepts user credentials; on valid returns json with created user's data
     """
     user_data = request.json
     keys = user_data.keys()
-    required_keys = {"password", "email"}
-    if not user_data or not required_keys.issubset(keys):
-        return json({"error": "invalid creation data"}, HTTPStatus.BAD_REQUEST)
-
     if "is_admin" not in keys:
         user_data["is_admin"] = False
     if "full_name" not in keys:
         user_data["full_name"] = None
+    else:
+        user_data["full_name"] = user_data["full_name"].strip()
+    user_data["is_admin"] = str(user_data["is_admin"]).lower() in [
+        "true",
+        "1",
+        "yes",
+        "y",
+    ]
 
     try:
         async with request.app.ctx.session() as session:
@@ -81,7 +85,7 @@ async def get_user_accounts(request, id: int):
 
 
 class UserManipulationView(HTTPMethodView):
-    decorators = [admin_only, valid_email_decorator]
+    decorators = [admin_only]
 
     async def delete(self, request, id: int):
         async with request.app.ctx.session() as session:
@@ -95,6 +99,7 @@ class UserManipulationView(HTTPMethodView):
             await session.commit()
             return json(user.serialize(), HTTPStatus.OK)
 
+    @validate_user_creation_data
     async def put(self, request, id: int):
         """Accepts update credentials,
         returns updated user data on valid input"""
