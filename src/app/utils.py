@@ -1,4 +1,5 @@
 import asyncio
+import datetime
 import random
 import re
 from functools import wraps
@@ -38,12 +39,27 @@ async def fetch_user_middleware(request):
     request.ctx.user = await fetch_user_from_request(request)
 
 
+def generate_jwt_token(user_email: str, secret: str, exp_time=None) -> str:
+    if exp_time is None:
+        exp_time = config.ACCESS_TOKEN_EXP_TIME
+
+    exp_time = datetime.datetime.now(datetime.timezone.utc) + exp_time
+    payload = {
+        "sub": str(user_email),
+        "exp": str(int(exp_time.timestamp())),
+    }
+    return jwt.encode(payload, secret, algorithm="HS256")
+
+
 def email_is_valid(email: str) -> bool:
     pattern = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
     return bool(re.match(pattern, email))
 
 
 def valid_email_decorator(wrapped):
+    """returns BAD_REQUEST if
+    email not in request data / email provided is invalid"""
+
     def decorator(f):
         @wraps(f)
         async def decorated_function(request, *args, **kwargs):

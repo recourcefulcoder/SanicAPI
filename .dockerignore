@@ -1,0 +1,7 @@
+venv
+personal
+.gitignore
+.env*
+.flake8
+**/.pytest_cache
+**/tests

@@ -77,6 +77,9 @@ class Account(Base):
         back_populates="account"
     )
 
+    def __str__(self):
+        return f"id: {self.id}\nuser_id:{self.user_id}\nbalance:{self.balance}"
+
     def serialize(self) -> Dict[str, Any]:
         return {"id": self.id, "balance": self.balance}
 
@@ -126,15 +129,4 @@ async def create_superuser(
 
 
 if __name__ == "__main__":
-    import asyncio
-    from pathlib import Path
-    import sys
-
-    path = Path(__file__).resolve().parent.parent
-    sys.path.append(str(path))
-    # in order to let application see the config.py,
-    # required in database.engine module
-
-    from engine import engine
-
-    asyncio.run(create_superuser(engine))
+    pass

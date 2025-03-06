@@ -1,13 +1,9 @@
-import datetime
 from http import HTTPStatus
 
 from app.auth import protected
-
-import config
+from app.utils import generate_jwt_token
 
 from database.models import Account, Transaction, User
-
-import jwt
 
 from sanic import Blueprint, json, text
 
@@ -35,7 +31,7 @@ async def get_personal_data(request):
     return json(payload, status=HTTPStatus.OK)
 
 
-@main.get("/accounts", name="account_info")
+@main.get("/accounts", name="accounts_info")
 @protected
 async def get_account_data(request):
     user = request.ctx.user
@@ -74,25 +70,18 @@ async def login_user(request):
     ):
         return json(
             {"error": "invalid credentials list"},
-            status=HTTPStatus.UNAUTHORIZED,
+            status=HTTPStatus.BAD_REQUEST,
         )
 
     stmt = select(User).where(User.email == credentials["email"])
     async with request.app.ctx.session() as session:
         user = await session.scalar(stmt)
-        if not user.verify_password(credentials["password"]):
+        if user is None or not user.verify_password(credentials["password"]):
             return json(
-                {"error: invalid password"}, status=HTTPStatus.UNAUTHORIZED
+                {"error": "invalid credentials"},
+                status=HTTPStatus.IM_A_TEAPOT,
             )
 
-    exp_time = (
-        datetime.datetime.now(datetime.timezone.utc)
-        + config.ACCESS_TOKEN_EXP_TIME
-    )
-    payload = {
-        "sub": str(user.email),
-        "exp": str(int(exp_time.timestamp())),
-    }
-    token = jwt.encode(payload, request.app.config.SECRET, algorithm="HS256")
+    token = generate_jwt_token(user.email, request.app.config.SECRET)
 
     return json({"access_token": token}, status=HTTPStatus.OK)

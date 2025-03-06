@@ -1,0 +1,31 @@
+services:
+  postgres:
+    image: postgres:17
+    container_name: postgres-db
+    restart: always
+    env_file: ".env"
+    volumes: 
+      - pgdata:/var/lib/postgresql/data
+    networks: 
+      - backend
+    ports: 
+      - "5432:5432"
+
+  payment-app:
+    build: .
+    container_name: payment-app
+    restart: always
+    env_file: ".env"
+    depends_on:
+      - postgres
+    ports:
+      - "8000:8000"
+    networks:
+      - backend
+
+volumes:
+  pgdata:
+
+networks:
+  backend:
+    driver: bridge

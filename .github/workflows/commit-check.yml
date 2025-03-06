@@ -30,7 +30,7 @@ jobs:
       WEBHOOK_SECRET: secret
       SANIC_SECRET: secret
     steps:
-      - name: add_checkout
+      - name: Add Checkout
         uses: actions/checkout@v4
 
       - name: Install requirements
@@ -42,7 +42,7 @@ jobs:
       - name: Apply database migrations
         run: |
           cd src
-          alembic upgrade head
+          alembic upgrade a0cdb30aa455
 
       - name: Run server
         run: |
@@ -65,5 +65,5 @@ jobs:
       - name: check_PEP8
         shell: bash
         run: |
-         pip install flake8 flake8-import-order flake8-print
+         pip install flake8 flake8-import-order flake8-print flake8-pytest-style
          flake8 .

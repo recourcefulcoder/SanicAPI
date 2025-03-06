@@ -129,6 +129,7 @@ celerybeat.pid
 
 # Environments
 .env
+.env.prod
 .venv
 env/
 venv/
@@ -171,3 +172,5 @@ cython_debug/
 .pypirc
 
 personal
+
+

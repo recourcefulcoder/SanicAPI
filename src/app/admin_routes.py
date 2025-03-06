@@ -30,7 +30,7 @@ async def create_user(request):
     if "is_admin" not in keys:
         user_data["is_admin"] = False
     if "full_name" not in keys:
-        user_data["is_admin"] = None
+        user_data["full_name"] = None
 
     try:
         async with request.app.ctx.session() as session:
@@ -110,6 +110,10 @@ class UserManipulationView(HTTPMethodView):
         for field in keys:
             if field in checkup_fields:
                 update_data[field] = data[field]
+        if "password" in keys:
+            update_data["password"] = User.hash_password(
+                update_data["password"]
+            )
 
         async with request.app.ctx.session() as session:
             async with session.begin():
@@ -148,9 +152,11 @@ async def get_users_info(request):
                 user_info = prev_user.serialize()
                 user_info["accounts"] = account_list
                 data.append(user_info)
-                account_list = [row.Account.serialize()]
+                account_list = []
+                if row.Account is not None:
+                    account_list.append(row.Account.serialize())
             prev_row = row
-        user_info = prev_user.serialize()
+        user_info = prev_row.User.serialize()
         user_info["accounts"] = account_list
         data.append(user_info)
         return json(data, HTTPStatus.OK)
