@@ -90,8 +90,8 @@ def valid_email_decorator(wrapped):
     return decorator(wrapped)
 
 
-def validate_user_creation_data(wrapped):
-    """Decorator validating request data for user creation,
+def validate_user_data(wrapped):
+    """Decorator validating request data for user creation/editing,
     returning error in case of invalid data and proceeding with
     handler on valid data"""
 
@@ -121,7 +121,8 @@ def validate_user_creation_data(wrapped):
                         "only english letters, digits "
                         f"and special characters "
                         f"{ALLOWED_PASSWORD_CHARACTERS} allowed"
-                    }
+                    },
+                    HTTPStatus.BAD_REQUEST,
                 )
 
             if "full_name" in keys and not fullname_is_valid(

@@ -1,7 +1,7 @@
 venv
 personal
 .gitignore
+.github
 .env*
 .flake8
 **/.pytest_cache
-**/tests

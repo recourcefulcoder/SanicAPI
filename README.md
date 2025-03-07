@@ -15,9 +15,7 @@ Go to:
   - [Migrations guide](#database-migrations)
   - [Notes on auth mechanism](#authentication-notes)
   - [Endpoint documentation](#endpoint-documentation)
-- [Notes on testing](#testing-notes)
-
-
+- [Notes on testing](#testing-notes) (**MUST READ** before running)
 
 
 ### Deployment guide
@@ -41,11 +39,6 @@ cd SanicAPI
 
 Since it is a vulnerable (from a security point) action, pay attention not to expose this file 
 in VCS/any other web-source - keep it locally on your machine.
-
-> [!WARNING]
-> Note value of HOST variable. It must be set to "postgresql-db" (no quotes), if you are not 
-> changing docker-compose.yaml; generally it must collocate with the name of database service
-> in your docker-compose file!
 
 3. Run docker compose:
 
@@ -181,20 +174,41 @@ objects writes transaction to the database and credits money to target account.
 
 ### Testing notes
 
-Tests rely on specific database state (i.e. containing test admin and "John Doe" user, created 
-by alembic migration a0cdb30aa455) CI/CD pipeline applies this migration automatically, however
+> [!CAUTION]
+> DO NOT run tests on real production database, as it may delete crucial user data!
+> to run tests, use specially created test database.
 
-> [!WARNING]
-> for running tests on your machine ensure you have test users with specified credentials created 
-> in your database
+Best approach for running tests if to run tests from set-up container, as it uses test migration
+with test data.
 
-For running tests you will need to install test requirements: from root directory run
+To run tests from container, execute following commands from root directory of the project:
+
 ```bash
-pip install test_req.txt
+docker compose up --build -d
+docker-compose exec payment-app bash -c "cd src && python -m pytest"
+docker compose down --volumes
 ```
 
-To actually run tests, from root directory run:
+make sure to write correct name of application service; by default (is defined in current veresion
+of docker-compose.yaml) it is "payment-app".
+
+However, you can run tests without docker - in order to do that, set up a test database 
+1. Create test postgresql database
+2. Migrate using alembic
+
+from src directory run
 ```bash
-cd src
+alembic upgrade head
+```
+3. Provide valid credentials for connecting to TEST DATABASE in your .env file
+
+> [!CAUTION]
+> Avoiding this step may violate your data in real database! Pay attention to provide credentials 
+> for TEST database, not development
+
+4. Run tests
+
+from src directory run:
+```bash
 python -m pytest
 ```

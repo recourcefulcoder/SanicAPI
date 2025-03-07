@@ -1,4 +1,4 @@
-name: CI
+name: tests
 
 on:
   [workflow_dispatch, push]
@@ -42,7 +42,7 @@ jobs:
       - name: Apply database migrations
         run: |
           cd src
-          alembic upgrade a0cdb30aa455
+          alembic upgrade head
 
       - name: Run server
         run: |

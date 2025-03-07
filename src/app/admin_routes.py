@@ -1,7 +1,7 @@
 from http import HTTPStatus
 
 from app.auth import admin_only
-from app.utils import validate_user_creation_data
+from app.utils import retry_decorator, validate_user_data
 
 from database.models import Account, User
 
@@ -9,14 +9,15 @@ from sanic import Blueprint, json
 from sanic.views import HTTPMethodView
 
 import sqlalchemy.exc
-from sqlalchemy import false, select, update
+from sqlalchemy import false, insert, select, update
 
 admin_bp = Blueprint("admin", url_prefix="/admin")
 
 
 @admin_bp.post("/create-user", name="create_user")
 @admin_only
-@validate_user_creation_data
+@retry_decorator
+@validate_user_data
 async def create_user(request):
     """
     Accepts user credentials; on valid returns json with created user's data
@@ -38,21 +39,22 @@ async def create_user(request):
 
     try:
         async with request.app.ctx.session() as session:
-            user = User(
-                email=user_data["email"],
-                full_name=user_data["full_name"],
-                is_admin=user_data["is_admin"],
+            await session.execute(
+                insert(User).values(
+                    email=user_data["email"],
+                    full_name=user_data["full_name"],
+                    is_admin=user_data["is_admin"],
+                    password=User.hash_password(user_data["password"]),
+                )
             )
-            user.set_password(user_data["password"])
-            session.add(user)
             await session.commit()
             user = await session.scalar(
                 select(User).where(User.email == user_data["email"])
             )
             return json(user.serialize(), status=HTTPStatus.CREATED)
-    except sqlalchemy.exc.IntegrityError:
+    except sqlalchemy.exc.IntegrityError as e:
         return json(
-            {"error": "user with provided credentials already exists"},
+            {"error": f"user with provided credentials already exists ({e})"},
             HTTPStatus.CONFLICT,
         )
 
@@ -87,7 +89,8 @@ async def get_user_accounts(request, id: int):
 class UserManipulationView(HTTPMethodView):
     decorators = [admin_only]
 
-    async def delete(self, request, id: int):
+    @staticmethod
+    async def delete(request, id: int):
         async with request.app.ctx.session() as session:
             user = await session.scalar(select(User).where(User.id == id))
             if user is None:
@@ -99,8 +102,9 @@ class UserManipulationView(HTTPMethodView):
             await session.commit()
             return json(user.serialize(), HTTPStatus.OK)
 
-    @validate_user_creation_data
-    async def put(self, request, id: int):
+    @staticmethod
+    @validate_user_data
+    async def put(request, id: int):
         """Accepts update credentials,
         returns updated user data on valid input"""
         data = request.json
